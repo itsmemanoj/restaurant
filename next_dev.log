@@ -1,0 +1,66 @@
+
+> web-app@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 504ms
+
+○ Compiling / ...
+ GET / 200 in 6.5s (next.js: 6.0s, application-code: 431ms)
+ GET / 200 in 72ms (next.js: 5ms, application-code: 67ms)
+○ Compiling /restaurant/[slug] ...
+Error: Route "/restaurant/[slug]" used `params.slug`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at RestaurantPage (src/app/restaurant/[slug]/page.tsx:8:33)
+   6 | export default function RestaurantPage({ params }: { params: { slug: string } }) {
+   7 |   // Mock data for the prototype
+>  8 |   const restaurantName = params.slug.split("-").map(w => w.charAt(0).toUpperCase() + w.sli...
+     |                                 ^
+   9 |
+  10 |   return (
+  11 |     <div className="min-h-screen bg-neutral-50 pb-20">
+⨯ TypeError: Cannot read properties of undefined (reading 'split')
+    at RestaurantPage (src/app/restaurant/[slug]/page.tsx:8:38)
+   6 | export default function RestaurantPage({ params }: { params: { slug: string } }) {
+   7 |   // Mock data for the prototype
+>  8 |   const restaurantName = params.slug.split("-").map(w => w.charAt(0).toUpperCase() + w.sli...
+     |                                      ^
+   9 |
+  10 |   return (
+  11 |     <div className="min-h-screen bg-neutral-50 pb-20"> {
+  digest: '3735606267'
+}
+ GET /restaurant/the-rustic-grill 500 in 6.3s (next.js: 5.8s, application-code: 420ms)
+[browser] A param property was accessed directly with `params.slug`. `params` is a Promise and must be unwrapped with `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis 
+    at RestaurantPage (src/app/restaurant/[slug]/page.tsx:8:33)
+   6 | export default function RestaurantPage({ params }: { params: { slug: string } }) {
+   7 |   // Mock data for the prototype
+>  8 |   const restaurantName = params.slug.split("-").map(w => w.charAt(0).toUpperCase() + w.sli...
+     |                                 ^
+   9 |
+  10 |   return (
+  11 |     <div className="min-h-screen bg-neutral-50 pb-20"> (src/app/restaurant/[slug]/page.tsx:8:33)
+[browser] A param property was accessed directly with `params.slug`. `params` is a Promise and must be unwrapped with `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis 
+    at RestaurantPage (src/app/restaurant/[slug]/page.tsx:8:33)
+   6 | export default function RestaurantPage({ params }: { params: { slug: string } }) {
+   7 |   // Mock data for the prototype
+>  8 |   const restaurantName = params.slug.split("-").map(w => w.charAt(0).toUpperCase() + w.sli...
+     |                                 ^
+   9 |
+  10 |   return (
+  11 |     <div className="min-h-screen bg-neutral-50 pb-20"> (src/app/restaurant/[slug]/page.tsx:8:33)
+[browser] Uncaught TypeError: Cannot read properties of undefined (reading 'split')
+    at RestaurantPage (src/app/restaurant/[slug]/page.tsx:8:38)
+   6 | export default function RestaurantPage({ params }: { params: { slug: string } }) {
+   7 |   // Mock data for the prototype
+>  8 |   const restaurantName = params.slug.split("-").map(w => w.charAt(0).toUpperCase() + w.sli...
+     |                                      ^
+   9 |
+  10 |   return (
+  11 |     <div className="min-h-screen bg-neutral-50 pb-20">
+ GET /account 200 in 1274ms (next.js: 1164ms, application-code: 110ms)
+ GET /checkout 200 in 1099ms (next.js: 999ms, application-code: 100ms)
+ GET /restaurant/the-rustic-grill 200 in 112ms (next.js: 34ms, application-code: 78ms)
+ GET /account 200 in 62ms (next.js: 4ms, application-code: 59ms)
+ GET /checkout 200 in 64ms (next.js: 4ms, application-code: 60ms)
