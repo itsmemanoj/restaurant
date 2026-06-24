@@ -1,0 +1,167 @@
+"A datetime string with format `Y-m-d H:i:s`, e.g. `2018-05-23 13:43:32`."
+scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
+
+"A date string with format `Y-m-d`, e.g. `2011-05-23`."
+scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
+
+"Indicates what fields are available at the top level of a query operation."
+type Query {
+    "Users"
+    me: User @auth
+    user(id: ID @eq): User @find
+    users(name: String @where(operator: "like")): [User!]! @paginate(defaultCount: 10)
+
+    "Restaurants"
+    restaurants(search: String): [Restaurant!]! @paginate
+    restaurant(slug: String! @eq): Restaurant @find
+
+    "Orders"
+    myOrders: [Order!]! @paginate(builder: "App\\GraphQL\\Queries\\MyOrders")
+    restaurantOrders(restaurant_id: ID! @eq): [Order!]! @paginate
+
+    "Tiffins"
+    myTiffinSubscriptions: [TiffinSubscription!]! @all(builder: "App\\GraphQL\\Queries\\MyTiffinSubscriptions")
+
+    "Venues"
+    venueAvailability(venue_id: ID!, date: Date!): [VenueBooking!]! @field(resolver: "App\\GraphQL\\Queries\\VenueAvailability")
+    myVenueBookings: [VenueBooking!]! @all(builder: "App\\GraphQL\\Queries\\MyVenueBookings")
+}
+
+"Indicates what fields are available at the top level of a mutation operation."
+type Mutation {
+    "Auth"
+    login(email: String!, password: String!): String! @field(resolver: "App\\GraphQL\\Mutations\\Login")
+    registerCustomer(name: String!, email: String!, password: String!): User! @field(resolver: "App\\GraphQL\\Mutations\\RegisterCustomer")
+    
+    "Restaurant Onboarding"
+    registerRestaurant(
+        name: String!, 
+        address: String!, 
+        registration_paper: String!, 
+        vat_pan_number: String!
+    ): Restaurant! @field(resolver: "App\\GraphQL\\Mutations\\RegisterRestaurant")
+
+    "Ordering"
+    createOrder(
+        restaurant_id: ID!
+        items: [OrderItemInput!]!
+        payment_method: String!
+        coupon_code: String
+    ): Order! @field(resolver: "App\\GraphQL\\Mutations\\CreateOrder")
+
+    cancelOrder(id: ID!): Order! @field(resolver: "App\\GraphQL\\Mutations\\CancelOrder")
+
+    "Subscriptions & Bookings"
+    subscribeToTiffin(plan_id: ID!, start_date: Date!): TiffinSubscription! @field(resolver: "App\\GraphQL\\Mutations\\SubscribeToTiffin")
+    bookVenue(venue_id: ID!, start_time: DateTime!, end_time: DateTime!, event_type: String!, guest_count: Int!): VenueBooking! @field(resolver: "App\\GraphQL\\Mutations\\BookVenue")
+
+    "Manager Actions"
+    updateOrderStatus(id: ID!, status: String!): Order! @update
+    approveVenueBooking(id: ID!): VenueBooking! @field(resolver: "App\\GraphQL\\Mutations\\ApproveVenueBooking")
+    markTiffinDelivery(subscription_id: ID!, date: Date!, status: String!): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\MarkTiffinDelivery")
+}
+
+input OrderItemInput {
+    item_id: ID!
+    quantity: Int!
+    addon_ids: [ID!]
+}
+
+"Account of a person who uses this application."
+type User {
+    id: ID!
+    name: String!
+    email: String!
+    phone: String
+    role: String!
+    created_at: DateTime!
+    updated_at: DateTime!
+}
+
+type Restaurant {
+    id: ID!
+    name: String!
+    slug: String!
+    description: String
+    address: String!
+    latitude: Float
+    longitude: Float
+    is_approved: Boolean!
+    categories: [MenuCategory!]! @hasMany
+    items: [Item!]! @hasMany
+    venues: [Venue!]! @hasMany
+    tiffinPlans: [TiffinPlan!]! @hasMany
+}
+
+type MenuCategory {
+    id: ID!
+    name: String!
+    items: [Item!]! @hasMany
+}
+
+type Item {
+    id: ID!
+    name: String!
+    description: String
+    price: Float!
+    image_url: String
+    is_available: Boolean!
+    dietary_preference: String
+    addons: [Addon!]! @hasMany
+}
+
+type Addon {
+    id: ID!
+    name: String!
+    price: Float!
+}
+
+type Order {
+    id: ID!
+    order_number: String!
+    total: Float!
+    status: String!
+    payment_status: String!
+    items: [OrderItem!]! @hasMany
+    created_at: DateTime!
+}
+
+type OrderItem {
+    id: ID!
+    item: Item! @belongsTo
+    quantity: Int!
+    price: Float!
+    addon_ids: [ID!]
+}
+
+type Venue {
+    id: ID!
+    name: String!
+    capacity: Int!
+    hourly_price: Float
+    daily_price: Float
+    package_price: Float
+}
+
+type VenueBooking {
+    id: ID!
+    venue: Venue! @belongsTo
+    start_time: DateTime!
+    end_time: DateTime!
+    status: String!
+}
+
+type TiffinPlan {
+    id: ID!
+    name: String!
+    monthly_price: Float!
+    meals_per_day: Int!
+}
+
+type TiffinSubscription {
+    id: ID!
+    plan: TiffinPlan! @belongsTo
+    start_date: Date!
+    end_date: Date!
+    status: String!
+}
