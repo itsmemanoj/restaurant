@@ -59,6 +59,9 @@ type Mutation {
     updateOrderStatus(id: ID!, status: String!): Order! @update
     approveVenueBooking(id: ID!): VenueBooking! @field(resolver: "App\\GraphQL\\Mutations\\ApproveVenueBooking")
     markTiffinDelivery(subscription_id: ID!, date: Date!, status: String!): Boolean! @field(resolver: "App\\GraphQL\\Mutations\\MarkTiffinDelivery")
+
+    "Customer Actions"
+    updateProfile(name: String!, phone: String!): User! @field(resolver: "App\\GraphQL\\Mutations\\UpdateProfile")
 }
 
 input OrderItemInput {
@@ -91,6 +94,15 @@ type Restaurant {
     items: [Item!]! @hasMany
     venues: [Venue!]! @hasMany
     tiffinPlans: [TiffinPlan!]! @hasMany
+    reviews: [Review!]! @hasMany
+}
+
+type Review {
+    id: ID!
+    rating: Int!
+    comment: String
+    user: User @belongsTo
+    created_at: DateTime!
 }
 
 type MenuCategory {

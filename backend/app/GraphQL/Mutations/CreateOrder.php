@@ -7,6 +7,8 @@ use App\Models\OrderItem;
 use App\Models\Item;
 use App\Models\Addon;
 use App\Models\Restaurant;
+use App\Models\Coupon;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -70,13 +72,36 @@ final class CreateOrder
                 ]);
             }
 
+            // Handle Coupon
+            $discount = 0;
+            if (isset($args['coupon_code'])) {
+                $coupon = Coupon::where('code', $args['coupon_code'])
+                    ->where('restaurant_id', $restaurant->id)
+                    ->where(function ($query) {
+                        $now = Carbon::now();
+                        $query->whereNull('valid_until')
+                              ->orWhere('valid_until', '>=', $now);
+                    })->first();
+
+                if ($coupon) {
+                    if ($coupon->discount_type === 'percentage') {
+                        $discount = $subtotal * ($coupon->discount_value / 100);
+                    } else {
+                        $discount = $coupon->discount_value;
+                    }
+                    // Cap discount at subtotal
+                    $discount = min($discount, $subtotal);
+                }
+            }
+
             // Finalize totals
-            $tax = $subtotal * 0.13; // 13% tax
-            $total = $subtotal + $tax + $order->delivery_fee;
-            $commission = $subtotal * ($restaurant->commission_rate / 100);
+            $tax = ($subtotal - $discount) * 0.13; // 13% tax on discounted amount
+            $total = ($subtotal - $discount) + $tax + $order->delivery_fee;
+            $commission = $subtotal * ($restaurant->commission_rate / 100); // Commission usually on original subtotal
 
             $order->update([
                 'subtotal' => $subtotal,
+                'discount' => $discount,
                 'tax' => $tax,
                 'total' => $total,
                 'commission_amount' => $commission
