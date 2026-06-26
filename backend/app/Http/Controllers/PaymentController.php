@@ -20,8 +20,11 @@ class PaymentController extends Controller
 
         $order = Order::where('order_number', $orderNumber)->firstOrFail();
 
-        // In a real scenario, you'd verify the refId against eSewa verification endpoint
-        // Simulate verification success:
+        // SECURITY REFACTOR: In production, verify the refId against the eSewa verification endpoint
+        // using the Merchant Secret Key (HMAC SHA256 signature).
+        // e.g., $signature = base64_encode(hash_hmac('sha256', "total_amount,transaction_uuid,product_code", env('ESEWA_SECRET_KEY'), true));
+
+        // Simulate verification success for prototype:
         if ($order->total == $amount) {
             $order->update([
                 'payment_status' => 'paid',
@@ -50,6 +53,9 @@ class PaymentController extends Controller
         }
 
         $order = Order::where('order_number', $orderNumber)->firstOrFail();
+
+        // SECURITY REFACTOR: Verify Khalti webhook signature using Secret Key
+        // if ($request->header('Authorization') !== 'Key ' . env('KHALTI_SECRET_KEY')) { abort(403); }
 
         // Verify state is Completed
         if (isset($payload['state']['name']) && strtolower($payload['state']['name']) === 'completed') {

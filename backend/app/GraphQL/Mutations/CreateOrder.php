@@ -5,9 +5,11 @@ namespace App\GraphQL\Mutations;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Item;
+use App\Models\Addon;
 use App\Models\Restaurant;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Exception;
 
 final class CreateOrder
 {
@@ -23,11 +25,11 @@ final class CreateOrder
             // Create Order skeleton
             $order = Order::create([
                 'order_number' => $orderNumber,
-                'user_id' => auth()->id(), // Optional, could be guest
+                'user_id' => auth()->id(), // Optional, could be guest checkout
                 'restaurant_id' => $restaurant->id,
                 'subtotal' => 0, // Calculated below
                 'tax' => 0,
-                'delivery_fee' => 50.00, // Fixed for simplicity
+                'delivery_fee' => 50.00, // Fixed or calculated based on distance
                 'discount' => 0,
                 'total' => 0,
                 'commission_amount' => 0,
@@ -38,12 +40,22 @@ final class CreateOrder
 
             foreach ($args['items'] as $itemInput) {
                 $item = Item::findOrFail($itemInput['item_id']);
+                
+                // Security: Ensure item belongs to the requested restaurant
+                if ($item->restaurant_id !== $restaurant->id) {
+                    throw new Exception("Item does not belong to the selected restaurant.");
+                }
+
                 $price = $item->price;
                 $addonPrice = 0;
                 
-                // Simplified addon calculation (just array of ids, ignoring actual addon fetching for prototype)
-                if (isset($itemInput['addon_ids'])) {
-                    $addonPrice = count($itemInput['addon_ids']) * 30.00; // Fake 30 fixed price
+                // Dynamically calculate Addons
+                if (isset($itemInput['addon_ids']) && count($itemInput['addon_ids']) > 0) {
+                    $addons = Addon::whereIn('id', $itemInput['addon_ids'])
+                                   ->where('item_id', $item->id)
+                                   ->get();
+                    
+                    $addonPrice = $addons->sum('price');
                 }
                 
                 $itemTotal = ($price + $addonPrice) * $itemInput['quantity'];
